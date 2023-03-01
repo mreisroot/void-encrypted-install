@@ -5,7 +5,7 @@ lsblk
 printf "\nChoose the disk for the installation: "
 read mydisk
 mydisk=/dev/${mydisk}
-mypartition=${mydisk}/1
+mypartition=${mydisk}1
 
 printf "Give a name to the encrypted partition: "
 read lukspartition
