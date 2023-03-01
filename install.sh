@@ -65,7 +65,8 @@ cat <<- CHROOT | xchroot /mnt
   cryptsetup luksAddKey "$mypartition" /boot/volume.key
   chmod 000 /boot/volume.key
   chmod -R g-rwx,o-rwx /boot
-  echo "install_items+=\" /boot/volume.key /etc/crypttab \"" > /etc/dracut.conf.d/10-crypt.conf
+  mkdir /etc/dracut.conf.d
+  printf "install_items+=\" /boot/volume.key /etc/crypttab \"\n" > /etc/dracut.conf.d/10-crypt.conf
 
   # Complete system installation
 
