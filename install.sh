@@ -14,7 +14,7 @@ read -r lukspartition
 scriptdir=$(pwd)
 
 # Pre-chroot system configuration
-cat <<- EOF | sudo 
+cat <<- EOF | sudo su
   # Format destination disk
   echo 'type=83' | sfdisk \$mydisk
   
