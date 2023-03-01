@@ -25,6 +25,7 @@ read -r myhostname
 # Script directory variable
 scriptdir=$(pwd)
 
+# Input for the LUKS commands
 echo YES > "${scriptdir}"/cryptinput-a.txt
 echo -e "${lukspass}\n${lukspass}\n" >> "${scriptdir}"/cryptinput-a.txt
 echo -e "${lukspass}\n" > "${scriptdir}"/cryptinput-b.txt
@@ -34,7 +35,7 @@ echo -e "${lukspass}\n" > "${scriptdir}"/cryptinput-b.txt
 echo 'type=83' | sfdisk "$mydisk"
 
 # Configure encrypted partition
-cryptsetup luksFormat --type luks1 "$mypartition" < "${scriptdir}"/cryptinput-a.txt
+cryptsetup luksFormat -f --type luks1 "$mypartition" < "${scriptdir}"/cryptinput-a.txt
 cryptsetup luksOpen "$mypartition" "$lukspartition" < "${scriptdir}"/cryptinput-b.txt
 mkfs.btrfs /dev/mapper/"$lukspartition"
 
