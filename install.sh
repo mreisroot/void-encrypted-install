@@ -13,19 +13,29 @@ mypartition=${mydisk}1
 printf "Give a name to the encrypted partition: "
 read -r lukspartition
 
-printf "Type a new password for the root user: "
+printf "Type a password for the encrypted partition: "
+read -rs lukspass
+
+printf "\nType a new password for the root user: "
 read -rs rootpass
+
+printf "\nType a new hostname for the installed system: "
+read -r myhostname
 
 # Script directory variable
 scriptdir=$(pwd)
+
+echo YES > "${scriptdir}"/cryptinput-a.txt
+echo -e "${lukspass}\n${lukspass}\n" >> "${scriptdir}"/cryptinput-a.txt
+echo -e "${lukspass}\n" > "${scriptdir}"/cryptinput-b.txt
 
 # Pre-chroot system configuration
 # Format destination disk
 echo 'type=83' | sfdisk "$mydisk"
 
 # Configure encrypted partition
-cryptsetup luksFormat --type luks1 "$mypartition"
-cryptsetup luksOpen "$mypartition" "$lukspartition"
+cryptsetup luksFormat --type luks1 "$mypartition" < "${scriptdir}"/cryptinput-a.txt
+cryptsetup luksOpen "$mypartition" "$lukspartition" < "${scriptdir}"/cryptinput-b.txt
 mkfs.btrfs /dev/mapper/"$lukspartition"
 
 # System installation
@@ -45,17 +55,14 @@ cat <<- CHROOT | xchroot /mnt
   chmod 755 /
   printf "%s\n%s\n" "$rootpass" "$rootpass" | passwd root
 
-  printf "\nChoose a hostname: "
-  read -r myhostname
-  echo "\${myhostname}" > /etc/hostname
+  echo "$myhostname" > /etc/hostname
 
   # GRUB configuration
   sed -i "s|<UUID>|$(blkid -o value -s UUID "${mypartition}")|g" /etc/default/grub
   
-
   # LUKS key setup
   dd bs=1 count=64 if=/dev/urandom of=/boot/volume.key
-  cryptsetup luksAddKey \$mypartition /boot/volume.key
+  cryptsetup luksAddKey "$mypartition" /boot/volume.key
   chmod 000 /boot/volume.key
   chmod -R g-rwx,o-rwx /boot
   echo "install_items+=\" /boot/volume.key /etc/crypttab \"" > /etc/dracut.conf.d/10-crypt.conf
