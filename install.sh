@@ -35,11 +35,11 @@ echo 'type=83' | sfdisk "$mydisk"
 
 # Configure encrypted partition
 printf "%s\n%s\n" "$lukspass" "$lukspass" | cryptsetup luksFormat -q --type luks1 "$mypartition" 
-printf "%s\n" "$lukspass" | cryptsetup luksOpen "$mypartition" "$lukspartition" 
-mkfs.btrfs /dev/mapper/"$lukspartition"
+printf "%s\n" "$lukspass" | cryptsetup luksOpen "$mypartition" "${lukspartition}" 
+mkfs.btrfs /dev/mapper/"${lukspartition}"
 
 # System installation
-mount /dev/mapper/"$lukspartition" /mnt
+mount /dev/mapper/"${lukspartition}" /mnt
 mkdir -p /mnt/var/db/xbps/keys
 cp /var/db/xbps/keys/* /mnt/var/db/xbps/keys/
 xbps-install -Sy -R https://repo-default.voidlinux.org/current/musl -r /mnt base-system cryptsetup grub
