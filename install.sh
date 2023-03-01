@@ -27,8 +27,8 @@ scriptdir=$(pwd)
 echo 'type=83' | sfdisk "$mydisk"
 
 # Configure encrypted partition
-echo -e "YES\n${lukspass}\n${lukspass}\n" | cryptsetup luksFormat --type luks1 "$mypartition"
-echo -e "${lukspass}\n" | cryptsetup luksOpen "$mypartition" "$lukspartition"
+printf "YES\n%s\n%s\n" "$lukspass" "$lukspass" | cryptsetup luksFormat --type luks1 "$mypartition"
+printf "%s\n" "$lukspass" | cryptsetup luksOpen "$mypartition" "$lukspartition"
 mkfs.btrfs /dev/mapper/"$lukspartition"
 
 # System installation
@@ -46,7 +46,7 @@ cat <<- CHROOT | xchroot /mnt
   # Initial configuration
   chown root:root /
   chmod 755 /
-  printf "%s\n%s\n" "$rootpass" | passwd root
+  printf "%s\n%s\n" "$rootpass" "$rootpass" | passwd root
 
   printf "\nChoose a hostname: "
   read -r myhostname
