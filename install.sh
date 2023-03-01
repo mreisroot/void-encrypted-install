@@ -16,7 +16,7 @@ read -r lukspartition
 printf "Type a password for the encrypted partition: "
 read -rs lukspass
 
-printf "Type a new password for the root user: "
+printf "\nType a new password for the root user: "
 read -rs rootpass
 
 # Script directory variable
