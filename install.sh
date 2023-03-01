@@ -66,7 +66,7 @@ cat <<- CHROOT | chroot /mnt /bin/bash
   sed -i "s/myhostname/$myhostname/g" /etc/hosts
 
   # LUKS key setup
-  dd bs=1 count=64 if=/dev/urandom of=/crypto_keyfile.bin
+  dd bs=512 count=4 if=/dev/urandom of=/crypto_keyfile.bin
   printf "%s\n" "$lukspass" | cryptsetup luksAddKey /dev/disk/by-uuid/$(blkid -o value -s UUID "$mypartition") /crypto_keyfile.bin
   chmod 000 /crypto_keyfile.bin
   chmod -R g-rwx,o-rwx /boot
