@@ -13,7 +13,7 @@ printf "Give a name to the encrypted partition: "
 read -r lukspartition
 
 printf "Type a password for the encrypted partition: "
-read -s lukspass
+read -rs lukspass
 
 # Script directory variable
 scriptdir=$(pwd)
@@ -23,8 +23,8 @@ scriptdir=$(pwd)
 echo 'type=83' | sfdisk "$mydisk"
 
 # Configure encrypted partition
-printf "YES\n${lukspass}\n${lukspass}" | cryptsetup luksFormat --type luks1 "$mypartition"
-printf "${lukspass}\n" | cryptsetup luksOpen "$mypartition" "$lukspartition"
+printf "YES\n%s\n%s" "$lukspass" "$lukspass" | cryptsetup luksFormat --type luks1 "$mypartition"
+printf "%s\n" "$lukspass" | cryptsetup luksOpen "$mypartition" "$lukspartition"
 mkfs.btrfs /dev/mapper/"$lukspartition"
 
 # System installation
@@ -46,13 +46,10 @@ cat <<- CHROOT | xchroot /mnt
 
   printf "\nChoose a hostname: "
   read -r myhostname
-  echo "${myhostname}" > /etc/hostname
-
-  # Getting the UUID of the system partition
-  myuuid=$(blkid -o value -s UUID "${mypartition}")
+  echo "\${myhostname}" > /etc/hostname
 
   # GRUB configuration
-  sed -i "s|<UUID>|${myuuid}|g" /etc/default/grub
+  sed -i "s|<UUID>|$(blkid -o value -s UUID "${mypartition}")|g" /etc/default/grub
   
 
   # LUKS key setup
