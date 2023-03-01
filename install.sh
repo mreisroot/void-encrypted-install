@@ -15,6 +15,9 @@ read -r lukspartition
 printf "Type a password for the encrypted partition: "
 read -rs lukspass
 
+printf "Type a new password for the root user: "
+read -rs rootpass
+
 # Script directory variable
 scriptdir=$(pwd)
 
@@ -42,7 +45,7 @@ cat <<- CHROOT | xchroot /mnt
   # Initial configuration
   chown root:root /
   chmod 755 /
-  printf "changeme\nchangeme" | passwd root
+  printf "%s\n%s" "$rootpass" | passwd root
 
   printf "\nChoose a hostname: "
   read -r myhostname
