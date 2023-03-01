@@ -23,31 +23,17 @@ When the system from the ISO you downloaded boots, do the following:
 1. Login into the live system:
 
 ```sh
-login: anon
-password: voidlinux
-```
-
-or
-
-```sh
 login: root
 password: voidlinux
 ```
 
-If you login as root, by default, this user is set to use /bin/sh as the shell. If you want to use bash, simply type and run:
+By default, the root user is set to use /bin/sh as the shell. If you want to use bash, simply type and run:
 
 `bash`
 
 2. Install git
 
 Make sure the system has git installed:
-
-```sh
-sudo xbps-install -Su --yes xbps
-sudo xbps-install -Syy --yes git
-```
-
-or (if you logged in as root)
 
 ```sh
 xbps-install -Su --yes xbps
@@ -71,10 +57,6 @@ or
 `chmod +x install.sh`
 
 5. Run the script
-
-`sudo ./install.sh`
-
-or (if you logged in as root)
 
 `./install.sh`
 
