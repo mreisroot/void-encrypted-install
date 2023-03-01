@@ -13,10 +13,7 @@ mypartition=${mydisk}1
 printf "Give a name to the encrypted partition: "
 read -r lukspartition
 
-printf "Type a password for the encrypted partition: "
-read -rs lukspass
-
-printf "\nType a new password for the root user: "
+printf "Type a new password for the root user: "
 read -rs rootpass
 
 # Script directory variable
@@ -27,8 +24,8 @@ scriptdir=$(pwd)
 echo 'type=83' | sfdisk "$mydisk"
 
 # Configure encrypted partition
-printf "YES\n%s\n%s\n" "${lukspass}" "${lukspass}" | cryptsetup luksFormat --type luks1 "$mypartition"
-printf "%s\n" "${lukspass}" | cryptsetup luksOpen "$mypartition" "$lukspartition"
+cryptsetup luksFormat --type luks1 "$mypartition"
+cryptsetup luksOpen "$mypartition" "$lukspartition"
 mkfs.btrfs /dev/mapper/"$lukspartition"
 
 # System installation
