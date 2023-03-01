@@ -6,7 +6,7 @@ if [ $(whoami) != root ]; then
   exit 1
 fi
 
-# Disk and partition variables
+# User interaction and some variables
 clear
 lsblk
 printf "\nChoose destination disk for the installation: "
@@ -27,6 +27,7 @@ read -r myhostname
 scriptdir=$(pwd)
 
 # Pre-chroot system configuration
+
 # Format destination disk
 echo 'type=83' | sfdisk "$mydisk"
 
@@ -35,7 +36,6 @@ printf "%s\n%s\n" "$lukspass" "$lukspass" | cryptsetup luksFormat -q --type luks
 printf "%s\n" "$lukspass" | cryptsetup open "$mypartition" cryptroot
 mkfs.btrfs /dev/mapper/cryptroot
 
-# System installation
 # Mount filesystems
 mount /dev/mapper/cryptroot /mnt
 mkdir /mnt/dev /mnt/proc /mnt/sys
@@ -43,6 +43,9 @@ mount --rbind /dev /mnt/dev
 mount --rbind /proc /mnt/proc
 mount --rbind /sys /mnt/sys
 
+# System installation
+mkdir -p /mnt/var/db/xbps/keys
+cp /var/db/xbps/keys/* /mnt/var/db/xbps/keys/
 xbps-install -Sy -R https://repo-default.voidlinux.org/current/musl -r /mnt base-system cryptsetup grub vim
 
 # Copying grub configuration file
