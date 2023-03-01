@@ -27,8 +27,8 @@ scriptdir=$(pwd)
 echo 'type=83' | sfdisk "$mydisk"
 
 # Configure encrypted partition
-printf "YES\n%s\n%s" "$lukspass" "$lukspass" | cryptsetup luksFormat --type luks1 "$mypartition"
-printf "%s\n" "$lukspass" | cryptsetup luksOpen "$mypartition" "$lukspartition"
+echo -e "YES\n${lukspass}\n${lukspass}" | cryptsetup luksFormat --type luks1 "$mypartition"
+echo -e "${lukspass}\n" | cryptsetup luksOpen "$mypartition" "$lukspartition"
 mkfs.btrfs /dev/mapper/"$lukspartition"
 
 # System installation
