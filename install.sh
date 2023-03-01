@@ -46,10 +46,13 @@ mount --rbind /sys /mnt/sys
 # System installation
 mkdir -p /mnt/var/db/xbps/keys
 cp /var/db/xbps/keys/* /mnt/var/db/xbps/keys/
-xbps-install -Sy -R https://repo-default.voidlinux.org/current/musl -r /mnt base-system cryptsetup grub vim
+xbps-install -Sy -R https://repo-default.voidlinux.org/current/musl -r /mnt base-system cryptsetup grub vim git
 
 # Copying grub configuration file
 cp "${scriptdir}"/grub /mnt/etc/default/grub
+
+# Copying hosts file
+cp "${scriptdir}"/hosts /mnt/etc/hosts
 
 # Entering chroot
 cat <<- CHROOT | chroot /mnt /bin/bash
@@ -60,24 +63,25 @@ cat <<- CHROOT | chroot /mnt /bin/bash
   ln -sf /usr/share/zoneinfo/America/Sao_Paulo /etc/localtime
   echo LANG=en_US.UTF-8 > /etc/locale.conf
   echo "$myhostname" > /etc/hostname
+  sed -i "s/myhostname/$myhostname/g" /etc/hosts
 
   # LUKS key setup
-  dd bs=512 count=4 if=/dev/urandom of=/crypto_keyfile.bin
-  printf "%s\n" "$lukspass" | cryptsetup luksAddKey /dev/disk/by-uuid/$(blkid -o value -s UUID "${mypartition}") /crypto_keyfile.bin
+  dd bs=1 count=64 if=/dev/urandom of=/crypto_keyfile.bin
+  printf "%s\n" "$lukspass" | cryptsetup luksAddKey /dev/disk/by-uuid/$(blkid -o value -s UUID "$mypartition") /crypto_keyfile.bin
   chmod 000 /crypto_keyfile.bin
   chmod -R g-rwx,o-rwx /boot
 
   # Setup crypttab
-  echo "cryptroot UUID=$(blkid -o value -s UUID "${mypartition}") /crypto_keyfile.bin luks" >> /etc/crypttab
+  echo "cryptroot UUID=$(blkid -o value -s UUID "$mypartition") /crypto_keyfile.bin luks" >> /etc/crypttab
   echo "install_items+=\" /crypto_keyfile.bin /etc/crypttab \"" > /etc/dracut.conf.d/10-crypt.conf
 
   # GRUB configuration
-  sed -i "s|<UUID>|$(blkid -o value -s UUID "${mypartition}")|g" /etc/default/grub
-  
+  sed -i "s/<UUID>/$(blkid -o value -s UUID "$mypartition")/g" /etc/default/grub
+
   # Complete system installation
 
   # Install the bootloader to the disk
-  grub-install "${mydisk}" --recheck
+  grub-install "$mydisk" --recheck
   grub-mkconfig -o /boot/grub/grub.cfg
 
   # Ensure an initramfs is generated:
