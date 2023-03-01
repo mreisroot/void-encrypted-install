@@ -37,7 +37,7 @@ sudo su <<- EOF
 EOF
 
 # Entering chroot
-xchroot /mnt <<- CHROOT
+sudo xchroot /mnt <<- CHROOT
   # Variables
   mydisk="$mydisk"
   mypartition="$mypartition"
