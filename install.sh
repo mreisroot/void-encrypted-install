@@ -61,12 +61,11 @@ cat <<- CHROOT | xchroot /mnt
   sed -i "s|<UUID>|$(blkid -o value -s UUID "${mypartition}")|g" /etc/default/grub
   
   # LUKS key setup
-  dd bs=1 count=64 if=/dev/urandom of=/boot/volume.key
-  cryptsetup luksAddKey "$mypartition" /boot/volume.key
-  chmod 000 /boot/volume.key
+  dd bs=512 count=4 if=/dev/urandom of=/crypto_keyfile.bin
+  cryptsetup luksAddKey /dev/disk/by-uuid/$(blkid -o value -s UUID "${mypartition}") /crypto_keyfile.bin
+  chmod 000 /crypto_keyfile.bin
   chmod -R g-rwx,o-rwx /boot
-  mkdir /etc/dracut.conf.d
-  printf "install_items+=\" /boot/volume.key /etc/crypttab \"\n" > /etc/dracut.conf.d/10-crypt.conf
+  printf "install_items+=\" /crypto_keyfile.bin /etc/crypttab \"\n" > /etc/dracut.conf.d/10-crypt.conf
 
   # Complete system installation
 
