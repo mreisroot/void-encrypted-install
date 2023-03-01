@@ -3,6 +3,7 @@
 # RUN THIS SCRIPT AS ROOT
 
 # Disk and partition variables
+clear
 lsblk
 printf "\nChoose destination disk for the installation: "
 read -r mydisk
