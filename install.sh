@@ -26,17 +26,16 @@ read -r myhostname
 scriptdir=$(pwd)
 
 # Input for the LUKS commands
-echo YES > "${scriptdir}"/cryptinput-a.txt
-echo -e "${lukspass}\n${lukspass}\n" >> "${scriptdir}"/cryptinput-a.txt
-echo -e "${lukspass}\n" > "${scriptdir}"/cryptinput-b.txt
+# echo -e "${lukspass}\n${lukspass}\n" >> "${scriptdir}"/cryptinput-a.txt
+# echo -e "${lukspass}\n" > "${scriptdir}"/cryptinput-b.txt
 
 # Pre-chroot system configuration
 # Format destination disk
 echo 'type=83' | sfdisk "$mydisk"
 
 # Configure encrypted partition
-cryptsetup luksFormat --type luks1 "$mypartition" < "${scriptdir}"/cryptinput-a.txt
-cryptsetup luksOpen "$mypartition" "$lukspartition" < "${scriptdir}"/cryptinput-b.txt
+printf "%s\n%s\n" "$lukspass" "$lukspass" | cryptsetup luksFormat -q --type luks1 "$mypartition" 
+printf "%s\n" "$lukspass" | cryptsetup luksOpen "$mypartition" "$lukspartition" 
 mkfs.btrfs /dev/mapper/"$lukspartition"
 
 # System installation
