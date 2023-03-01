@@ -30,6 +30,9 @@ mkdir -p /mnt/var/db/xbps/keys
 cp /var/db/xbps/keys/* /mnt/var/db/xbps/keys/
 xbps-install -Sy -R https://repo-default.voidlinux.org/current/musl -r /mnt base-system cryptsetup grub
 
+# Copying grub configuration file
+cp ${scriptdir}/grub /mnt/etc/default/grub
+
 # Entering chroot
 xchroot /mnt <<- CHROOT
   # Variables
@@ -50,7 +53,6 @@ xchroot /mnt <<- CHROOT
   myuuid=$(blkid -o value -s UUID \$mypartition)
 
   # GRUB configuration
-  cp \${scriptdir}/grub /etc/default/grub
   sed -i "s|<UUID>|${myuuid}|g" /etc/default/grub
 
   # LUKS key setup
