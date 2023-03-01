@@ -1,0 +1,7 @@
+# Grub configuration file
+GRUB_DEFAULT=0
+GRUB_HIDDEN_TIMEOUT=0
+GRUB_DISTRIBUTOR="Void"
+GRUB_ENABLE_CRYPTODISK=y
+GRUB_CMDLINE_LINUX_DEFAULT="loglevel=4 slub_debug=P page_poison=1 rd.auto=1 rd.luks.uuid=<UUID>"
+GRUB_DISABLE_OS_PROBER=true
