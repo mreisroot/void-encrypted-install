@@ -14,27 +14,19 @@ read lukspartition
 scriptdir=$(pwd)
 
 # Pre-chroot system configuration
-sudo <<- EOF
-  # Variables
-  mydisk="$mydisk"
-  mypartition="$mypartition"
-  lukspartition="$lukspartition"
-  scriptdir="$scriptdir"
+# Format destination disk
+echo 'type=83' | sfdisk \$mydisk
 
-  # Format destination disk
-  echo 'type=83' | sfdisk \$mydisk
+# Configure encrypted partition
+cryptsetup luksFormat --type luks1 \$mypartition
+cryptsetup luksOpen \$mypartition \$lukspartition
+mkfs.btrfs /dev/mapper/\${lukspartition}
 
-  # Configure encrypted partition
-  cryptsetup luksFormat --type luks1 \$mypartition
-  cryptsetup luksOpen \$mypartition \$lukspartition
-  mkfs.btrfs /dev/mapper/\${lukspartition}
-
-  # System installation
-  mount /dev/mapper/\${lukspartition} /mnt
-  mkdir -p /mnt/var/db/xbps/keys
-  cp /var/db/xbps/keys/* /mnt/var/db/xbps/keys/
-  xbps-install -Sy -R https://repo-default.voidlinux.org/current/musl -r /mnt base-system cryptsetup grub
-EOF
+# System installation
+mount /dev/mapper/\${lukspartition} /mnt
+mkdir -p /mnt/var/db/xbps/keys
+cp /var/db/xbps/keys/* /mnt/var/db/xbps/keys/
+xbps-install -Sy -R https://repo-default.voidlinux.org/current/musl -r /mnt base-system cryptsetup grub
 
 # Entering chroot
 sudo xchroot /mnt <<- CHROOT
@@ -57,7 +49,7 @@ sudo xchroot /mnt <<- CHROOT
 
   # GRUB configuration
   cp \${scriptdir}/grub /etc/default/grub
-  sed -i "s|<UUID>|${myuuid}|" /etc/default/grub
+  sed -i "s|<UUID>|${myuuid}|g" /etc/default/grub
 
   # LUKS key setup
   dd bs=1 count=64 if=/dev/urandom of=/boot/volume.key
