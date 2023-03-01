@@ -1,6 +1,10 @@
 #!/bin/bash
 
-# RUN THIS SCRIPT AS ROOT
+# RUN THIS SCRIPT AS ROOT!
+if [ $(whoami) != root ]; then
+  echo "RUN THIS SCRIPT AS ROOT!"
+  exit 1
+fi
 
 # Disk and partition variables
 clear
@@ -9,9 +13,6 @@ printf "\nChoose destination disk for the installation: "
 read -r mydisk
 mydisk=/dev/${mydisk}
 mypartition=${mydisk}1
-
-printf "Give a name to the encrypted partition: "
-read -r lukspartition
 
 printf "Type a password for the encrypted partition: "
 read -rs lukspass
@@ -25,52 +26,56 @@ read -r myhostname
 # Script directory variable
 scriptdir=$(pwd)
 
-# Input for the LUKS commands
-# echo -e "${lukspass}\n${lukspass}\n" >> "${scriptdir}"/cryptinput-a.txt
-# echo -e "${lukspass}\n" > "${scriptdir}"/cryptinput-b.txt
-
 # Pre-chroot system configuration
 # Format destination disk
 echo 'type=83' | sfdisk "$mydisk"
 
 # Configure encrypted partition
 printf "%s\n%s\n" "$lukspass" "$lukspass" | cryptsetup luksFormat -q --type luks1 "$mypartition" 
-printf "%s\n" "$lukspass" | cryptsetup luksOpen "$mypartition" "${lukspartition}" 
-mkfs.btrfs /dev/mapper/"${lukspartition}"
+printf "%s\n" "$lukspass" | cryptsetup open "$mypartition" cryptroot
+mkfs.btrfs /dev/mapper/cryptroot
 
 # System installation
-mount /dev/mapper/"${lukspartition}" /mnt
-mkdir -p /mnt/var/db/xbps/keys
-cp /var/db/xbps/keys/* /mnt/var/db/xbps/keys/
-xbps-install -Sy -R https://repo-default.voidlinux.org/current/musl -r /mnt base-system cryptsetup grub
+# Mount filesystems
+mount /dev/mapper/cryptroot /mnt
+mkdir /mnt/dev /mnt/proc /mnt/sys
+mount --rbind /dev /mnt/dev
+mount --rbind /proc /mnt/proc
+mount --rbind /sys /mnt/sys
+
+xbps-install -Sy -R https://repo-default.voidlinux.org/current/musl -r /mnt base-system cryptsetup grub vim
 
 # Copying grub configuration file
 cp "${scriptdir}"/grub /mnt/etc/default/grub
 
 # Entering chroot
-cat <<- CHROOT | xchroot /mnt 
+cat <<- CHROOT | chroot /mnt /bin/bash
 
   # Initial configuration
-  chown root:root /
-  chmod 755 /
   printf "%s\n%s\n" "$rootpass" "$rootpass" | passwd root
-
+  usermod -s /bin/bash root
+  ln -sf /usr/share/zoneinfo/America/Sao_Paulo /etc/localtime
+  echo LANG=en_US.UTF-8 > /etc/locale.conf
   echo "$myhostname" > /etc/hostname
 
-  # GRUB configuration
-  sed -i "s|<UUID>|$(blkid -o value -s UUID "${mypartition}")|g" /etc/default/grub
-  
   # LUKS key setup
   dd bs=512 count=4 if=/dev/urandom of=/crypto_keyfile.bin
   cryptsetup luksAddKey /dev/disk/by-uuid/$(blkid -o value -s UUID "${mypartition}") /crypto_keyfile.bin
   chmod 000 /crypto_keyfile.bin
   chmod -R g-rwx,o-rwx /boot
-  printf "install_items+=\" /crypto_keyfile.bin /etc/crypttab \"\n" > /etc/dracut.conf.d/10-crypt.conf
 
+  # Setup crypttab
+  echo "cryptroot UUID=$(blkid -o value -s UUID "${mypartition}") /crypto_keyfile.bin luks" >> /etc/crypttab
+  echo "install_items+=\" /crypto_keyfile.bin /etc/crypttab \"" > /etc/dracut.conf.d/10-crypt.conf
+
+  # GRUB configuration
+  sed -i "s|<UUID>|$(blkid -o value -s UUID "${mypartition}")|g" /etc/default/grub
+  
   # Complete system installation
 
   # Install the bootloader to the disk
-  grub-install "${mydisk}"
+  grub-install "${mydisk}" --recheck
+  grub-mkconfig -o /boot/grub/grub.cfg
 
   # Ensure an initramfs is generated:
   xbps-reconfigure -fa
