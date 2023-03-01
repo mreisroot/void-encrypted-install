@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # RUN THIS SCRIPT AS ROOT!
-if [ $(whoami) != root ]; then
+if [ "$(whoami)" != root ]; then
   echo "RUN THIS SCRIPT AS ROOT!"
   exit 1
 fi
@@ -63,7 +63,7 @@ cat <<- CHROOT | chroot /mnt /bin/bash
 
   # LUKS key setup
   dd bs=512 count=4 if=/dev/urandom of=/crypto_keyfile.bin
-  cryptsetup luksAddKey /dev/disk/by-uuid/$(blkid -o value -s UUID "${mypartition}") /crypto_keyfile.bin
+  printf "%s\n" "$lukspass" | cryptsetup luksAddKey /dev/disk/by-uuid/$(blkid -o value -s UUID "${mypartition}") /crypto_keyfile.bin
   chmod 000 /crypto_keyfile.bin
   chmod -R g-rwx,o-rwx /boot
 
