@@ -1,13 +1,17 @@
 #!/bin/sh
 
+# Disk and partition variables
 lsblk
 printf "\nChoose the disk for the installation: "
 read mydisk
-mydisk=/dev/\${mydisk}
-mypartition=\${mydisk}/1
+mydisk=/dev/${mydisk}
+mypartition=${mydisk}/1
 
 printf "Give a name to the encrypted partition: "
 read lukspartition
+
+# Script directory variable
+scriptdir=$(pwd)
 
 # Pre-chroot system configuration
 sudo su <<- EOF
@@ -15,6 +19,7 @@ sudo su <<- EOF
   mydisk="$mydisk"
   mypartition="$mypartition"
   lukspartition="$lukspartition"
+  scriptdir="$scriptdir"
 
   # Format destination disk
   echo 'type=83' | sfdisk \$mydisk
@@ -33,6 +38,11 @@ EOF
 
 # Entering chroot
 xchroot /mnt <<- CHROOT
+  # Variables
+  mydisk="$mydisk"
+  mypartition="$mypartition"
+  scriptdir="$scriptdir"
+
   # Initial configuration
   chown root:root /
   chmod 755 /
@@ -42,13 +52,12 @@ xchroot /mnt <<- CHROOT
   read myhostname
   echo \$myhostname > /etc/hostname
 
-  # GRUB configuration
-  echo "GRUB_ENABLE_CRYPTODISK=y" >> /etc/default/grub
-
   # Getting the UUID of the system partition
   myuuid=$(blkid -o value -s UUID \$mypartition)
-  echo "GRUB_CMDLINE_LINUX_DEFAULT=rd.luks.uuid=${myuuid}" >> /etc/default/grub
-  # sed -i "s/GRUB_CMDLINE_LINUX_DEFAULT=/GRUB_CMDLINE_LINUX_DEFAULT=rd.luks.uuid=${myuuid}/g" /etc/default/grub
+
+  # GRUB configuration
+  cp \${scriptdir}/grub /etc/default/grub
+  sed -i "s|<UUID>|${myuuid}|" /etc/default/grub
 
   # LUKS key setup
   dd bs=1 count=64 if=/dev/urandom of=/boot/volume.key
