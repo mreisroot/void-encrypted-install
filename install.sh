@@ -35,7 +35,7 @@ echo -e "${lukspass}\n" > "${scriptdir}"/cryptinput-b.txt
 echo 'type=83' | sfdisk "$mydisk"
 
 # Configure encrypted partition
-cryptsetup luksFormat -f --type luks1 "$mypartition" < "${scriptdir}"/cryptinput-a.txt
+cryptsetup luksFormat --type luks1 "$mypartition" < "${scriptdir}"/cryptinput-a.txt
 cryptsetup luksOpen "$mypartition" "$lukspartition" < "${scriptdir}"/cryptinput-b.txt
 mkfs.btrfs /dev/mapper/"$lukspartition"
 
