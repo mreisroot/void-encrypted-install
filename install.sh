@@ -1,5 +1,7 @@
 #!/bin/sh
 
+# RUN THIS SCRIPT AS ROOT!
+
 # Disk and partition variables
 lsblk
 printf "\nChoose the disk for the installation: "
@@ -29,7 +31,7 @@ cp /var/db/xbps/keys/* /mnt/var/db/xbps/keys/
 xbps-install -Sy -R https://repo-default.voidlinux.org/current/musl -r /mnt base-system cryptsetup grub
 
 # Entering chroot
-sudo xchroot /mnt <<- CHROOT
+xchroot /mnt <<- CHROOT
   # Variables
   mydisk="$mydisk"
   mypartition="$mypartition"
