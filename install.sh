@@ -16,21 +16,21 @@ scriptdir=$(pwd)
 # Pre-chroot system configuration
 cat <<- EOF | sudo su
   # Format destination disk
-  echo 'type=83' | sfdisk \$mydisk
+  echo 'type=83' | sfdisk "${mydisk}"
   
   # Configure encrypted partition
-  cryptsetup luksFormat --type luks1 \$mypartition
-  cryptsetup luksOpen \$mypartition \$lukspartition
-  mkfs.btrfs /dev/mapper/\${lukspartition}
+  cryptsetup luksFormat --type luks1 "${mypartition}"
+  cryptsetup luksOpen \$mypartition "${lukspartition}"
+  mkfs.btrfs /dev/mapper/"${lukspartition}"
   
   # System installation
-  mount /dev/mapper/\${lukspartition} /mnt
+  mount /dev/mapper/"${lukspartition}" /mnt
   mkdir -p /mnt/var/db/xbps/keys
   cp /var/db/xbps/keys/* /mnt/var/db/xbps/keys/
   xbps-install -Sy -R https://repo-default.voidlinux.org/current/musl -r /mnt base-system cryptsetup grub
   
   # Copying grub configuration file
-  cp \${scriptdir}/grub /mnt/etc/default/grub
+  cp "${scriptdir}"/grub /mnt/etc/default/grub
 EOF
 
 # Entering chroot
@@ -43,13 +43,13 @@ cat <<- CHROOT | sudo xchroot /mnt
 
   printf "\nChoose a hostname: "
   read -r myhostname
-  echo $myhostname > /etc/hostname
+  echo "${myhostname}" > /etc/hostname
 
   # Getting the UUID of the system partition
-  myuuid=$(blkid -o value -s UUID \$mypartition)
+  myuuid=$(blkid -o value -s UUID "${mypartition}")
 
   # GRUB configuration
-  sed -i "s|<UUID>|$myuuid|g" /etc/default/grub
+  sed -i "s|<UUID>|${myuuid}|g" /etc/default/grub
 
   # LUKS key setup
   dd bs=1 count=64 if=/dev/urandom of=/boot/volume.key
@@ -61,7 +61,7 @@ cat <<- CHROOT | sudo xchroot /mnt
   # Complete system installation
 
   # Install the bootloader to the disk
-  grub-install \$mydisk
+  grub-install "${mydisk}"
 
   # Ensure an initramfs is generated:
   xbps-reconfigure -fa
