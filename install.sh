@@ -14,7 +14,7 @@ read lukspartition
 scriptdir=$(pwd)
 
 # Pre-chroot system configuration
-sudo su <<- EOF
+sudo <<- EOF
   # Variables
   mydisk="$mydisk"
   mypartition="$mypartition"
