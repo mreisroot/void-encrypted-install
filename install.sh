@@ -47,13 +47,13 @@ xchroot /mnt <<- CHROOT
 
   printf "\nChoose a hostname: "
   read myhostname
-  echo \$myhostname > /etc/hostname
+  echo "$myhostname" > /etc/hostname
 
   # Getting the UUID of the system partition
-  myuuid=$(blkid -o value -s UUID \$mypartition)
+  myuuid=$(blkid -o value -s UUID "$mypartition")
 
   # GRUB configuration
-  sed -i "s|<UUID>|${myuuid}|g" /etc/default/grub
+  sed -i "s|<UUID>|$myuuid|g" /etc/default/grub
 
   # LUKS key setup
   dd bs=1 count=64 if=/dev/urandom of=/boot/volume.key
