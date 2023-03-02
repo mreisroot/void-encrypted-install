@@ -23,6 +23,9 @@ read -rs rootpass
 printf "\nType a new hostname for the installed system: "
 read -r myhostname
 
+printf "What version of void you're installing? [musl glibc]: "
+read -r mylibc
+
 # Script directory variable
 scriptdir=$(pwd)
 
@@ -55,13 +58,20 @@ cp "${scriptdir}"/grub /mnt/etc/default/grub
 cp "${scriptdir}"/hosts /mnt/etc/hosts
 
 # Entering chroot
-cat <<- CHROOT | chroot /mnt /bin/bash
+cat <<- CHROOT | xchroot /mnt /bin/bash
 
   # Initial configuration
   printf "%s\n%s\n" "$rootpass" "$rootpass" | passwd root
   usermod -s /bin/bash root
   ln -sf /usr/share/zoneinfo/America/Sao_Paulo /etc/localtime
-  echo LANG=en_US.UTF-8 > /etc/locale.conf
+  echo "LANG=en_US.UTF-8" > /etc/locale.conf
+ 
+  if [ "$mylibc" == "glibc" ]; then
+    # glibc locale configuration
+    echo "en_US.UTF-8 UTF-8" >> /etc/default/libc-locales
+    xbps-reconfigure -f glibc-locales
+  fi 
+
   echo "$myhostname" > /etc/hostname
   sed -i "s/myhostname/$myhostname/g" /etc/hosts
 
