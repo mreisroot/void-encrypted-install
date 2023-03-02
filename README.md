@@ -2,7 +2,7 @@
 
 The [install.sh](./install.sh) script automatically installs Void Linux with Full Disk Encryption using LUKS on MBR BIOS systems.
 
-The only interaction needed happens on the beginning of the script: to choose the destination disk for the installation, type a password for the encrypted partition (don't worry, the script won't echo the passwords you're typing), type a password for the root user, set a hostname for the installed system and choose the standard c library.
+The only interaction needed happens on the beginning of the script: to choose the destination disk for the installation, type a password for the encrypted partition (don't worry, the script won't echo the passwords you're typing), type a password for the root user, set a hostname for the installed system and choose the standard C library.
 
 Since this is an installation script, I won't provide a testing environment with a Vagrantfile, like I did in the suckless desktop projects I launched, as vagrant boxes are pre-installed systems, so the script won't work in this case.
 
