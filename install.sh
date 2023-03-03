@@ -29,6 +29,16 @@ read -r mylibc
 # Script directory variable
 scriptdir=$(pwd)
 
+# Void repository variable
+
+# Musl repo
+repo=https://repo-default.voidlinux.org/current/musl
+
+# Glibc repo
+if [ "$mylibc" == "glibc" ]; then
+  repo=https://repo-default.voidlinux.org/current/
+fi
+
 # Pre-chroot system configuration
 
 # Format destination disk
@@ -49,7 +59,7 @@ mount --rbind /sys /mnt/sys
 # System installation
 mkdir -p /mnt/var/db/xbps/keys
 cp /var/db/xbps/keys/* /mnt/var/db/xbps/keys/
-xbps-install -Sy -R https://repo-default.voidlinux.org/current/musl -r /mnt base-system cryptsetup grub vim git
+xbps-install -Sy -R "$repo" -r /mnt base-system cryptsetup grub vim git
 
 # Copying grub configuration file
 cp "${scriptdir}"/grub /mnt/etc/default/grub
